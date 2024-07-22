@@ -4,7 +4,6 @@ from src.entity.models import Photo,TransformedImage
 from src.configuration.cloudinary import upload_qr_to_cloudinary
 
 class QrCode:
-    @staticmethod
     async def generate_qr_code(url_photo: str, db: AsyncSession, photo_id: int) -> str:
         qr = qrcode.QRCode(
             version=1,
