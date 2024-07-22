@@ -15,6 +15,10 @@ class Settigns(BaseSettings):
     RELOAD: bool = True
     STR_ALLOWED_ORIGINS: str = "*,example.url"
 
+    CLOUDINARY_NAME: str ="cloudinary_name"
+    CLOUDINARY_API_KEY: str ="cloudinary_api_key"
+    CLOUDINARY_API_SECRET: str="cloudinary_api_secret"
+
     @property
     def ASYNC_DATABASE_URL(self) -> str:
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST_ASYNC}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
