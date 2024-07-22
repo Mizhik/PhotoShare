@@ -15,10 +15,8 @@ class QrCode:
         qr.add_data(url_photo)
         qr.make(fit=True)
         img = qr.make_image(fill='black', back_color='white')
-
-        filename = f"photo_{photo_id}_qr"
-        qr_url = upload_qr_to_cloudinary(img, filename)
-
+        img.save('qrcode.png')
+        qr_url = upload_qr_to_cloudinary(img, photo_id)
         transformed_image = TransformedImage(photo_id=photo_id, qr_code_url=qr_url)
         await db.add(transformed_image)
         await db.commit()

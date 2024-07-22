@@ -1,7 +1,8 @@
 import cloudinary
 import cloudinary.uploader
-from cloudinary.utils import cloudinary_url
 from src.configuration import settings
+import io
+from PIL import Image
 
 # Configuration       
 cloudinary.config( 
@@ -11,11 +12,17 @@ cloudinary.config(
     secure=True
 )
 
-def upload_qr_to_cloudinary(qr_obj, filename):
+def upload_qr_to_cloudinary(img, filename):
+    img_byte_arr = io.BytesIO()
+    img.save(img_byte_arr, format='PNG')
+    img_byte_arr.seek(0)
+
     r = cloudinary.uploader.upload(
-        qr_obj, public_id=f'PhotoShare/{filename}', overwrite=True
-        )
-    return cloudinary.CloudinaryImage(
-        f'PhotoShare/{filename}').build_url(
-            width=250, height=250, crop='fill', version=r.get('version')
-        )
+        img_byte_arr,
+        public_id=f'PhotoShare/{filename}',
+        overwrite=True
+    )
+    
+    return cloudinary.CloudinaryImage(f'PhotoShare/{filename}').build_url(
+        width=250, height=250, crop='fill', version=r.get('version')
+    )
