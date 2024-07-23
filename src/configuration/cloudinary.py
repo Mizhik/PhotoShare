@@ -1,14 +1,13 @@
 import cloudinary
 import cloudinary.uploader
-from src.configuration import settings
+from src.configuration.settings import config
 import io
-from PIL import Image
 
-# Configuration       
+
 cloudinary.config( 
-    cloud_name = settings.CLOUDINARY_NAME, 
-    api_key = settings.CLOUDINARY_API_KEY, 
-    api_secret = settings.CLOUDINARY_API_SECRET,
+    cloud_name = config.CLOUDINARY_NAME, 
+    api_key = config.CLOUDINARY_API_KEY, 
+    api_secret = config.CLOUDINARY_API_SECRET,
     secure=True
 )
 

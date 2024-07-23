@@ -11,7 +11,7 @@ from src.schemas.qr_code import QrSchema,QrUrl
 router = APIRouter(prefix="/generate_qr", tags=["generate_qr"])
 
 @router.post("/generate_qr/{photo_id}", response_model=QrSchema)
-def generate_qr(photo_id: int, db: AsyncSession = Depends(get_db)):
+def generate_qr(photo_id: int, db: AsyncSession = Depends(get_db)) -> str:
     photo = db.query(Photo).filter(Photo.id == photo_id).first()
     if not photo:
         raise HTTPException(status_code=404, detail="Photo not found")
@@ -20,6 +20,6 @@ def generate_qr(photo_id: int, db: AsyncSession = Depends(get_db)):
     return f'{qr_code}'
 
 @router.get('/get_qr/{photo_id}', response_model=QrUrl)
-async def get_qr(photo_id: int, db: AsyncSession = Depends(get_db)):
+async def get_qr(photo_id: int, db: AsyncSession = Depends(get_db)) -> str:
     qr_code = await QrCode.get_qr_code(photo_id, db)
     return {'qr_url': qr_code}

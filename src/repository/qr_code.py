@@ -1,6 +1,6 @@
 import qrcode
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.entity.models import Photo,TransformedImage
+from src.entity.models import TransformedImage
 from src.configuration.cloudinary import upload_qr_to_cloudinary
 
 class QrCode:

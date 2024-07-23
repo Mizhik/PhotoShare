@@ -5,10 +5,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.configuration.settings import config
 from src.routes import healthchecker
+from src.routes import qrcode
 
 app = FastAPI()
 
 app.include_router(healthchecker.router)
+app.include_router(qrcode.router)
 
 app.add_middleware(
     CORSMiddleware,
