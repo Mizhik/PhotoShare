@@ -1,9 +1,8 @@
 import enum
 from datetime import date
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from sqlalchemy import String, DateTime, func, Enum, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -42,6 +41,6 @@ class Photo(Base):
     cloudinary_id: Mapped[str] = mapped_column(String(255), nullable=False)
     url: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str] = mapped_column(String(255), nullable=True)
-    user_id: Mapped[PGUUID] = mapped_column(PGUUID(as_uuid=True), ForeignKey('users.id'))
+    user_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), ForeignKey('users.id'))
     created_at: Mapped[date] = mapped_column("created_at", DateTime, default=func.now())
     updated_at: Mapped[date] = mapped_column("updated_at", DateTime, default=func.now(), onupdate=func.now())
