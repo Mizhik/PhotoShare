@@ -13,7 +13,10 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 @router.post("/signup", response_model=UserDetail)
 async def signup(body: UserSchema, db: AsyncSession = Depends(get_db)):
     body.password = auth_service.get_password_hash(body.password)
-    new_user = await user_repository.create_user(body, db)
+    if await user_repository.is_user_table_empty(db):
+        new_user = await user_repository.create_user(body, db, role="admin")
+    else:
+        new_user = await user_repository.create_user(body, db)
     return new_user
 
 

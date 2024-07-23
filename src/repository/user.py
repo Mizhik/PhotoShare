@@ -2,7 +2,7 @@ from typing import Optional
 from uuid import UUID
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.db import get_db
@@ -15,6 +15,11 @@ security = HTTPBearer()
 
 class UserRepository:
 
+    async def is_user_table_empty(self, db: AsyncSession) -> bool:
+        result = await db.execute(select(func.count()).select_from(User))
+        count = result.scalar()
+        return count == 0
+
     async def get_user_by_email(self, email: str, db: AsyncSession):
         stmt = select(User).filter_by(email=email)
         user = await db.execute(stmt)
@@ -22,9 +27,11 @@ class UserRepository:
         return user
 
     async def create_user(
-        self, body: UserSchema, db: AsyncSession
+        self, body: UserSchema, db: AsyncSession, role: str | None = None
     ) -> UserDetail:
         new_user = User(**body.model_dump())
+        if role:
+            new_user.role = role
         db.add(new_user)
         await db.commit()
         await db.refresh(new_user)
@@ -44,6 +51,7 @@ class UserRepository:
         return {
             "access_token": access_token,
         }
+
     @staticmethod
     async def get_current_user(
         credentials: HTTPAuthorizationCredentials = Depends(security),
