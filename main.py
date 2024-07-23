@@ -1,15 +1,15 @@
 import uvicorn
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.configuration.settings import config
-from src.routes import healthchecker,user
+from src.routes import healthchecker, user, photo
 
 app = FastAPI()
 
 app.include_router(healthchecker.router)
 app.include_router(user.router)
+app.include_router(photo.router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -18,7 +18,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 if __name__ == "__main__":
     uvicorn.run(
