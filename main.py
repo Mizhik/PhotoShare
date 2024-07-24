@@ -3,13 +3,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.configuration.settings import config
-from src.routes import healthchecker, user, photo
+from src.routes import healthchecker, user, photo, comment, cloudinary_func
 
 app = FastAPI()
 
 app.include_router(healthchecker.router)
 app.include_router(user.router)
 app.include_router(photo.router)
+app.include_router(comment.router)
+app.include_router(cloudinary_func.router)
 
 app.add_middleware(
     CORSMiddleware,
