@@ -5,12 +5,15 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
+from src.repository.tag import TagRepository
 from src.entity.models import Photo, User
 from src.schemas.photo import PhotoUpdate
 
 
 class PhotoRepository:
-    async def get_all_photos(self, offset: int, limit: int, db: AsyncSession) -> Sequence[Photo]:
+    async def get_all_photos(
+        self, offset: int, limit: int, db: AsyncSession
+    ) -> Sequence[Photo]:
         """
         Retrieve a list of photos from the database with pagination.
 
@@ -28,7 +31,9 @@ class PhotoRepository:
 
         return photos
 
-    async def get_photo_by_id_or_404(self, photo_id: UUID, db: AsyncSession) -> Photo | None:
+    async def get_photo_by_id_or_404(
+        self, photo_id: UUID, db: AsyncSession
+    ) -> Photo | None:
         """
         Retrieve a photo by its ID or raise a 404 error if not found.
 
@@ -44,18 +49,20 @@ class PhotoRepository:
         photo = result.scalar_one_or_none()
 
         if not photo:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Photo was not found.')
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Photo was not found."
+            )
 
         return photo
 
     async def save_photo_to_db(
-            self,
-            public_id: str,
-            url: str,
-            description: str,
-            tags: list[str],
-            user: User,
-            db: AsyncSession
+        self,
+        public_id: str,
+        url: str,
+        description: str,
+        tags: list[str],
+        user: User,
+        db: AsyncSession,
     ) -> Photo:
         """
         Save a new photo to the database.
@@ -75,16 +82,26 @@ class PhotoRepository:
         :return: The saved photo.
         :rtype: Photo
         """
-        # TODO: add tags saving
-        photo = Photo(url=url, cloudinary_id=public_id, description=description, user_id=user.id)
+        tag_objects = []
+        for tag_name in tags:
+            tag = await TagRepository.create_tag(db, tag_name)
+            tag_objects.append(tag)
+
+        photo = Photo(
+            url=url, cloudinary_id=public_id, description=description, user_id=user.id
+        )
         db.add(photo)
+        for tag in tag_objects:
+            photo.tags.append(tag)
 
         await db.commit()
         await db.refresh(photo)
 
         return photo
 
-    async def update_photo(self, photo: Photo, body: PhotoUpdate, db: AsyncSession) -> Photo | None:
+    async def update_photo(
+        self, photo: Photo, body: PhotoUpdate, db: AsyncSession
+    ) -> Photo | None:
         """
         Update an existing photo's details.
 
