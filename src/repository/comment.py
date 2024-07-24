@@ -3,7 +3,7 @@ from sqlalchemy.future import select
 from fastapi import HTTPException
 from uuid import UUID
 from datetime import datetime, timezone
-from src.entity.models import Comment
+from src.entity.models import Comment, Photo
 from sqlalchemy.exc import IntegrityError
 from collections.abc import Sequence
 
@@ -12,6 +12,10 @@ class CommentRepository:
 
 	@staticmethod
 	async def create_comment(db: AsyncSession, text: str, user_id: UUID, photo_id: UUID) -> Comment:
+		result = await db.execute(select(Photo).where(Photo.id == photo_id)) #
+		photo = result.scalars().first() # Це треба додати
+		if not photo: #
+			raise HTTPException(status_code=404, detail="Photo not found") #
 		try:
 			comment = Comment(text=text, user_id=user_id, photo_id=photo_id)
 			db.add(comment)

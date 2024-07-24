@@ -27,7 +27,7 @@ class CloudinaryRepository:
 			for transformation in transformations:
 				transform_params.update(transformation.model_dump(exclude_none=True))
 			# трансформація та отримання юрл трансформації
-			transform_url, _ = cloudinary_url(public_id=photo.cloudinary_id, **transform_params)
+			transform_url, _ = cloudinary_url(source=photo.cloudinary_id, **transform_params)
 			transformed_image = TransformedImage(
 				photo_id=photo.id,
 				transformed_url=transform_url,
