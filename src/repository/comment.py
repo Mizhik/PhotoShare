@@ -42,7 +42,6 @@ class CommentRepository:
             comment = await CommentRepository.get_comment_by_id(db, comment_id)
             if comment:
                 comment.text = new_text
-                comment.updated_at = datetime.now(timezone.utc)
                 await db.commit()
                 await db.refresh(comment)
                 return comment

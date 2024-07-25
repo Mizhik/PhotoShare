@@ -9,12 +9,11 @@ from sqlalchemy.ext.asyncio import (
 )
 
 
-
 class DatabaseSessionManager:
     def __init__(self, url: str):
         self._engine: AsyncEngine | None = create_async_engine(url)
         self._session_maker: async_sessionmaker = async_sessionmaker(
-            autocommit=False, autoflush=False, bind=self._engine
+            autocommit=False, autoflush=False, bind=self._engine, expire_on_commit=False
         )
 
     @contextlib.asynccontextmanager

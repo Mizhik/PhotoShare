@@ -82,21 +82,29 @@ class PhotoRepository:
         :return: The saved photo.
         :rtype: Photo
         """
-        tag_objects = []
-        for tag_name in tags:
-            tag = await TagRepository.create_tag(db, tag_name)
-            tag_objects.append(tag)
 
         photo = Photo(
             url=url, cloudinary_id=public_id, description=description, user_id=user.id
         )
-        db.add(photo)
-        for tag in tag_objects:
-            photo.tags.append(tag)
 
+        if tags:
+            str_tag = tags[0]
+            list_tags = [result for result in str_tag.split(",")]
+            tag_objects = []
+            for tag_name in list_tags:
+                if not await TagRepository.get_tag(db, tag_name):
+                    tag = await TagRepository.create_tag(db, tag_name)
+                    tag_objects.append(tag)
+                else:
+                    tag = await TagRepository.get_tag(db, tag_name)
+                    tag_objects.append(tag)
+
+            for tag in tag_objects:
+                photo.tags.append(tag)
+
+        db.add(photo)
         await db.commit()
         await db.refresh(photo)
-
         return photo
 
     async def update_photo(

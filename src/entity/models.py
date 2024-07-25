@@ -2,7 +2,7 @@ import enum
 from datetime import date
 from uuid import UUID, uuid4
 
-from sqlalchemy import String, DateTime, func, Enum, ForeignKey, Column, Table
+from sqlalchemy import PrimaryKeyConstraint, String, DateTime, func, Enum, ForeignKey, Column, Table
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -12,10 +12,10 @@ class Base(DeclarativeBase):
 
 
 photo_tag_association = Table(
-	'photo_tag',
-	Base.metadata,
-	Column('photo_id', PGUUID(as_uuid=True), ForeignKey('photos.id')),
-	Column('tag_id', PGUUID(as_uuid=True), ForeignKey('tags.id'))
+    "photo_tag",
+    Base.metadata,
+    Column("photo_id", PGUUID(as_uuid=True), ForeignKey("photos.id")),
+    Column("tag_id", PGUUID(as_uuid=True), ForeignKey("tags.id")),
 )
 
 

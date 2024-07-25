@@ -4,23 +4,24 @@ from datetime import datetime
 
 
 class CommentBase(BaseModel):
-	text: str
+    text: str
 
 
-class CommentCreate(CommentBase):
-	pass
+class CommentCreate(BaseModel):
+    text:str
 
 
-class CommentUpdate(CommentBase):
-	pass
+class CommentUpdate(BaseModel):
+    text:str
 
 
-class CommentResponse(CommentBase):
-	id: UUID
-	created_at: datetime
-	updated_at: datetime
-	user_id: UUID
-	photo_id: UUID
+class CommentResponse(BaseModel):
+    id: UUID
+    text:str
+    created_at: datetime
+    updated_at: datetime
+    user_id: UUID
+    photo_id: UUID
 
-	class Config:
-		from_attributes = True
+    class Config:
+        from_attributes = True

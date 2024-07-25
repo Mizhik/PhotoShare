@@ -24,6 +24,7 @@ class TagRepository:
     async def create_tag(db: AsyncSession, tag_name: str) -> Tag:
         try:
             new_tag = Tag(name=tag_name)
+            print(type(new_tag))
             db.add(new_tag)
             await db.commit()
             await db.refresh(new_tag)
