@@ -13,7 +13,7 @@ cloudinary.config(
 
 def upload_qr_to_cloudinary(img, filename):
     img_byte_arr = io.BytesIO()
-    img.save(img_byte_arr, format='PNG')
+    img.save(img_byte_arr)
     img_byte_arr.seek(0)
 
     r = cloudinary.uploader.upload(

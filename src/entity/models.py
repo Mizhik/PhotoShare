@@ -87,4 +87,6 @@ class TransformedImage(Base):
 	id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
 	photo_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), ForeignKey('photos.id'))
 	transformed_url: Mapped[str] = mapped_column(String, nullable=False)
+	qr_code_url: Mapped[str] = mapped_column(String, nullable=True)
 	photo: Mapped['Photo'] = relationship('Photo', back_populates='transformed_images', lazy="selectin")
+
