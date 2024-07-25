@@ -11,7 +11,7 @@ services:
     command:
       - sh
       - -c
-      - poetry run python -m main
+      - poetry run python -m main && alembic upgrade head 
     networks:
       - photo-share-network
 
