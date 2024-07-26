@@ -91,13 +91,15 @@ class PhotoRepository:
             str_tag = tags[0]
             list_tags = [result for result in str_tag.split(",")]
             tag_objects = []
+            
+            if len(list_tags) > 5:
+                raise HTTPException(status_code=500, detail="Error. You can add only 5 tags.")
+
             for tag_name in list_tags:
-                if not await TagRepository.get_tag(db, tag_name):
+                tag = await TagRepository.get_tag(db, tag_name)
+                if not tag:
                     tag = await TagRepository.create_tag(db, tag_name)
-                    tag_objects.append(tag)
-                else:
-                    tag = await TagRepository.get_tag(db, tag_name)
-                    tag_objects.append(tag)
+                tag_objects.append(tag)
 
             for tag in tag_objects:
                 photo.tags.append(tag)

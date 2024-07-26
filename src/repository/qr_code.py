@@ -1,5 +1,6 @@
 from uuid import UUID
 import qrcode
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.entity.models import QrCode as QrCodeModel
 from src.configuration.cloudinary import upload_qr_to_cloudinary
@@ -24,11 +25,10 @@ class QrCode:
         return transformed_image
 
     @staticmethod
-    async def get_qr_code(qr_url: QrCodeModel.qr_code_url, db:AsyncSession) -> str:
-        qr = await db.query(QrCodeModel).filter(QrCodeModel.qr_code_url == qr_url).first()
-        if qr:
-            return qr
-        else:
-            return 'QR code not found'
+    async def get_qr_code(photo_id: str, db:AsyncSession) -> str:
+        stmt = select(QrCodeModel).filter_by(photo_id=photo_id)
+        qr = await db.execute(stmt)
+        qr = qr.scalars().first()
+        return qr
 
 qr_repository = QrCode()

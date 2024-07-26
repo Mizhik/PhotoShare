@@ -2,7 +2,7 @@ import enum
 from datetime import date
 from uuid import UUID, uuid4
 
-from sqlalchemy import PrimaryKeyConstraint, String, DateTime, func, Enum, ForeignKey, Column, Table
+from sqlalchemy import Integer, PrimaryKeyConstraint, String, DateTime, func, Enum, ForeignKey, Column, Table
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -36,7 +36,7 @@ class User(Base):
 	role: Mapped[Role] = mapped_column("role", Enum(Role), default=Role.user)
 	photos: Mapped[list['Photo']] = relationship('Photo', back_populates='user', lazy="selectin")
 	comments: Mapped[list['Comment']] = relationship('Comment', back_populates='user', lazy="selectin")
-
+	ratings: Mapped[list['Rating']] = relationship('Rating', back_populates='user', lazy="selectin")
 	@property
 	def is_admin(self):
 		return self.role == Role.admin
@@ -62,6 +62,7 @@ class Photo(Base):
 	qr_code: Mapped[list['QrCode']] = relationship('QrCode', back_populates='qr_code', lazy="selectin")
 	comments: Mapped[list['Comment']] = relationship('Comment', back_populates='photo', lazy="selectin")
 	user: Mapped['User'] = relationship('User', back_populates='photos', lazy="selectin")
+	ratings: Mapped[list['Rating']] = relationship('Rating', back_populates='photo', lazy="selectin")
 
 
 class Tag(Base):
@@ -96,3 +97,12 @@ class QrCode(Base):
 	photo_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), ForeignKey('photos.id'))
 	qr_code_url: Mapped[str] = mapped_column(String, nullable=True)
 	qr_code: Mapped['Photo'] = relationship('Photo', back_populates='qr_code', lazy="selectin")
+
+class Rating(Base):
+    __tablename__ = "ratings"
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
+    photo_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), ForeignKey("photos.id"))
+    user_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), ForeignKey("users.id"))
+    rating: Mapped[int] = mapped_column(Integer, nullable=False)
+    photo: Mapped["Photo"] = relationship("Photo", back_populates="ratings", lazy="selectin")
+    user: Mapped["User"] = relationship("User", back_populates="ratings", lazy="selectin")

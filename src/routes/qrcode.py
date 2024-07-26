@@ -18,12 +18,9 @@ async def generate_qr(photo_id: UUID, db: AsyncSession = Depends(get_db)) -> str
     photo = photo.scalar_one_or_none()
     if not photo:
         raise HTTPException(status_code=404, detail="Photo not found")
-
-    qr_code = await QrCode.generate_qr_code(photo.url, db, photo.id)
-    return f'{qr_code}'
+    return await QrCode.generate_qr_code(photo.url, db, photo.id)
 
 
 @router.get('/get_qr/{photo_id}', response_model=QrGetResponse)
 async def get_qr(photo_id: UUID, db: AsyncSession = Depends(get_db)) -> str:
-    qr_code = await QrCode.get_qr_code(photo_id, db)
-    return {'qr_url': qr_code}
+    return await QrCode.get_qr_code(photo_id, db)

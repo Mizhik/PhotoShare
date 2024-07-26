@@ -1,6 +1,6 @@
-
 from pydantic import BaseModel
 from uuid import UUID
+from src.schemas.photo import PhotoResponse
 
 class QrCreateResponse(BaseModel):
     id: UUID
@@ -9,4 +9,3 @@ class QrCreateResponse(BaseModel):
 
 class QrGetResponse(BaseModel):
     qr_code_url: str
-

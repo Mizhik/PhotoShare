@@ -1,0 +1,83 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
+from fastapi import HTTPException
+from uuid import UUID
+from src.entity.models import Rating, Photo
+from src.schemas.rating import RatingResponse
+
+
+class RatingRepository:
+
+	@staticmethod
+	async def create_rating(
+			db: AsyncSession,
+			user_id: UUID,
+			photo_id: UUID,
+			rating_value: int
+	) -> Rating:
+
+		if rating_value < 1 or rating_value > 5:
+			raise HTTPException(status_code=400, detail="Rating must be between 1 and 5.")
+
+		existing_rating = await RatingRepository.get_user_rating_for_photo(db, user_id, photo_id)
+		if existing_rating:
+			raise HTTPException(status_code=400, detail="User has already rated this photo.")
+
+		photo = await db.execute(select(Photo).where(Photo.id == photo_id))
+		photo = photo.scalars().first()
+		if not photo:
+			raise HTTPException(status_code=404, detail="Photo not found.")
+		if photo.user_id == user_id:
+			raise HTTPException(status_code=400, detail="Cannot rate your own photo.")
+		try:
+			rating = Rating(user_id=user_id, photo_id=photo_id, rating=rating_value)
+			db.add(rating)
+			await db.commit()
+			await db.refresh(rating)
+			return rating
+		except IntegrityError:
+			await db.rollback()
+			raise HTTPException(status_code=500, detail="Error creating rating.")
+
+	@staticmethod
+	async def get_user_rating_for_photo(
+			db: AsyncSession,
+			user_id: UUID,
+			photo_id: UUID
+	) -> Rating | None:
+		result = await db.execute(
+			select(Rating).where(Rating.user_id == user_id, Rating.photo_id == photo_id)
+		)
+		return result.scalars().first()
+
+	@staticmethod
+	async def get_average_rating(db: AsyncSession, photo_id: UUID) -> float:
+		result = await db.execute(
+			select(func.avg(Rating.rating)).where(Rating.photo_id == photo_id)
+		)
+		avg_rating = result.scalar()
+		return avg_rating if avg_rating is not None else 0.0
+
+	@staticmethod
+	async def get_ratings_for_photo(
+			db: AsyncSession,
+			photo_id: UUID
+	) -> list[RatingResponse]:
+		result = await db.execute(select(Rating).where(Rating.photo_id == photo_id))
+		ratings = result.scalars().all()
+		return [RatingResponse.model_validate(rating) for rating in ratings]
+
+	@staticmethod
+	async def delete_rating(db: AsyncSession, user_id: UUID, photo_id: UUID) -> None:
+		try:
+			rating = await RatingRepository.get_user_rating_for_photo(db, user_id, photo_id)
+			if rating:
+				await db.delete(rating)
+				await db.commit()
+			else:
+				raise HTTPException(status_code=404, detail="Rating not found.")
+		except IntegrityError:
+			await db.rollback()
+			raise HTTPException(status_code=500, detail="Error deleting rating.")
