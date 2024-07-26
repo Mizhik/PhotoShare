@@ -59,6 +59,7 @@ class Photo(Base):
 	updated_at: Mapped[date] = mapped_column("updated_at", DateTime, default=func.now(), onupdate=func.now())
 	tags: Mapped[list['Tag']] = relationship('Tag', secondary=photo_tag_association, back_populates='photos', lazy="selectin")
 	transformed_images: Mapped[list['TransformedImage']] = relationship('TransformedImage', back_populates='photo', lazy="selectin")
+	qr_code: Mapped[list['QrCode']] = relationship('QrCode', back_populates='qr_code', lazy="selectin")
 	comments: Mapped[list['Comment']] = relationship('Comment', back_populates='photo', lazy="selectin")
 	user: Mapped['User'] = relationship('User', back_populates='photos', lazy="selectin")
 
@@ -86,7 +87,12 @@ class TransformedImage(Base):
 	__tablename__ = 'transformed_images'
 	id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
 	photo_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), ForeignKey('photos.id'))
-	transformed_url: Mapped[str] = mapped_column(String, nullable=False)
-	qr_code_url: Mapped[str] = mapped_column(String, nullable=True)
+	transformed_url: Mapped[str] = mapped_column(String, nullable=True)
 	photo: Mapped['Photo'] = relationship('Photo', back_populates='transformed_images', lazy="selectin")
 
+class QrCode(Base):
+	__tablename__ = 'qr_codes'
+	id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
+	photo_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), ForeignKey('photos.id'))
+	qr_code_url: Mapped[str] = mapped_column(String, nullable=True)
+	qr_code: Mapped['Photo'] = relationship('Photo', back_populates='qr_code', lazy="selectin")

@@ -1,6 +1,7 @@
 import cloudinary
 import cloudinary.uploader
 from src.configuration.settings import config
+from src.entity.models import TransformedImage
 import io
 
 
@@ -15,13 +16,11 @@ def upload_qr_to_cloudinary(img, filename):
     img_byte_arr = io.BytesIO()
     img.save(img_byte_arr)
     img_byte_arr.seek(0)
-
     r = cloudinary.uploader.upload(
         img_byte_arr,
         public_id=f'PhotoShare/{filename}',
         overwrite=True
     )
-    
     return cloudinary.CloudinaryImage(f'PhotoShare/{filename}').build_url(
         width=250, height=250, crop='fill', version=r.get('version')
     )
