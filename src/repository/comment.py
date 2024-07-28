@@ -15,8 +15,8 @@ class CommentRepository:
         db: AsyncSession, text: str, user_id: UUID, photo_id: UUID
     ) -> Comment:
         result = await db.execute(select(Photo).where(Photo.id == photo_id))  #
-        photo = result.scalars().first()  # Це треба додати
-        if not photo:  #
+        photo = result.scalars().first()
+        if not photo:
             raise HTTPException(status_code=404, detail="Photo not found")  #
         try:
             comment = Comment(text=text, user_id=user_id, photo_id=photo_id)

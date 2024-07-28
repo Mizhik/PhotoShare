@@ -1,11 +1,13 @@
 from fastapi import HTTPException
-from cloudinary.utils import cloudinary_url
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from src.entity.models import Photo, TransformedImage
+from src.entity.models import Photo, TransformedImage, User
 from src.schemas.cloudinary_func import Transformation
 from uuid import UUID
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 
 
 class CloudinaryRepository:
@@ -14,25 +16,35 @@ class CloudinaryRepository:
 	async def transform_image(
 			photo_id: UUID,
 			transformations: List[Transformation],
-			db: AsyncSession) -> str:
+			description: str,
+			db: AsyncSession,
+			user: User
+			) -> str:
 
 		try:
-			# зображення з бази по ID фото (Коментарі українською потім треба видалити)
 			result = await db.execute(select(Photo).filter(Photo.id == photo_id))
 			photo = result.scalars().first()
 			if not photo:
 				raise HTTPException(status_code=404, detail="Photo not found")
-			# параметри трансформації
 			transform_params = {}
 			for transformation in transformations:
 				transform_params.update(transformation.model_dump(exclude_none=True))
-			# трансформація та отримання юрл трансформації
-			transform_url, _ = cloudinary_url(photo.cloudinary_id, **transform_params)
+			response = cloudinary.uploader.upload(photo.url, transformation=transform_params)
+			transform_url = response['url']
 			transformed_image = TransformedImage(
 				photo_id=photo.id,
 				transformed_url=transform_url,
 
 			)
+
+			transformed_photo = Photo(
+				url=transform_url,
+				cloudinary_id=response['public_id'],
+				description=description,
+				user_id=user.id,
+				tags=photo.tags
+			)
+			db.add(transformed_photo)
 			db.add(transformed_image)
 			await db.commit()
 

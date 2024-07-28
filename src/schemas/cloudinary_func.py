@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
+from uuid import UUID
 
 
 class Transformation(BaseModel):
@@ -12,5 +13,16 @@ class Transformation(BaseModel):
 	angle: Optional[int] = Field(None, description="Angle for rotation")
 	border: Optional[str] = Field(None, description="Border to add")
 
+
+class TransformedImageResponse(BaseModel):
+	id: UUID
+	transformed_url: str
+	qr_code_url: Optional[str] = None
+
 	class Config:
 		from_attributes = True
+
+
+class TransformImageRequest(BaseModel):
+	transformations: List[Transformation]
+	description: str
