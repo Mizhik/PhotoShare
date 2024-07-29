@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
 from typing import List, Optional
 from src.entity.models import Photo, Tag, User, Rating
-from src.schemas.photo import PhotoSearchQuery, SortBy, Order
+from src.schemas.photo import SortBy, Order
 
 
 class SearchPhotoRepository:
@@ -18,7 +18,7 @@ class SearchPhotoRepository:
 			username: Optional[str] = None,
 			sort_by: SortBy = SortBy.date,
 			order: Order = Order.asc
-	) -> List[PhotoSearchQuery]:
+	) -> List[Photo]:
 		try:
 			query = select(Photo).options(
 				selectinload(Photo.tags),
@@ -28,7 +28,8 @@ class SearchPhotoRepository:
 			if description:
 				query = query.filter(Photo.description.ilike(f"%{description}%"))
 			if tag:
-				query = query.join(Photo.tags).filter(Tag.name == tag)
+				tag_lower = tag.lower()
+				query = query.join(Photo.tags).filter(func.lower(Tag.name) == tag_lower)
 			if username:
 				query = query.join(User).filter(User.username == username)
 
