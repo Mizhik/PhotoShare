@@ -42,8 +42,8 @@ async def generate_qr(photo_id: UUID, db: AsyncSession = Depends(get_db)) -> str
     return await QrCode.generate_qr_code(photo.url, db, photo.id)
 
 
-@router.get('/get_qr/{photo_id}', response_model=QrGetResponse)
-async def get_qr(photo_id: UUID, db: AsyncSession = Depends(get_db)) -> str:
+@router.get("/get_qr/{qr_id}", response_model=QrGetResponse)
+async def get_qr(qr_id: UUID, db: AsyncSession = Depends(get_db)) -> str:
     """
     Retrieve the QR code URL for a specific photo.
 
@@ -67,4 +67,4 @@ async def get_qr(photo_id: UUID, db: AsyncSession = Depends(get_db)) -> str:
 
 
     """
-    return await QrCode.get_qr_code(photo_id, db)
+    return await QrCode.get_qr_code(qr_id, db)

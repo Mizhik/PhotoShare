@@ -38,7 +38,6 @@ async def signup(body: UserSchema, db: AsyncSession = Depends(get_db)):
 
 
     """
-    body.password = auth_service.get_password_hash(body.password)
     if await user_repository.is_user_table_empty(db):
         new_user = await user_repository.create_user(body, db, role="admin")
     else:

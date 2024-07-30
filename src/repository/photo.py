@@ -102,7 +102,7 @@ class PhotoRepository:
             tag_objects = []
             
             if len(list_tags) > 5:
-                raise HTTPException(status_code=500, detail="Error. You can add only 5 tags.")
+                raise HTTPException(status_code=400, detail="Error. You can add only 5 tags.")
 
             for tag_name in list_tags:
                 tag = await TagRepository.get_tag(db, tag_name)

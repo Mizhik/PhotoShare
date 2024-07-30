@@ -59,6 +59,12 @@ class UserRepository:
         Returns:
             UserDetail: The created user object.
         """
+        new_user = await self.get_user_by_email(email=body.email,db=db)
+        if new_user:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT, detail="Account already exists"
+            )
+        body.password = auth_service.get_password_hash(body.password)
         new_user = User(**body.model_dump())
         if role:
             new_user.role = role

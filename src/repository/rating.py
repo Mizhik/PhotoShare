@@ -38,7 +38,7 @@ class RatingRepository:
         if rating_value < 1 or rating_value > 5:
             raise HTTPException(status_code=400, detail="Rating must be between 1 and 5.")
 
-        existing_rating = await RatingRepository.get_user_rating_for_photo(db, user_id, photo_id)
+        existing_rating = await RatingRepository.get_user_rating_for_photo(db, photo_id)
         if existing_rating:
             raise HTTPException(status_code=400, detail="User has already rated this photo.")
 
@@ -60,7 +60,8 @@ class RatingRepository:
 
     @staticmethod
     async def get_user_rating_for_photo(
-        db: AsyncSession, rating_id: UUID) -> Rating | None:
+        db: AsyncSession, photo_id: UUID
+    ) -> Rating | None:
         """
         Retrieves a user's rating for a specific photo.
 
@@ -68,6 +69,22 @@ class RatingRepository:
             db (AsyncSession): The database session object for asynchronous database operations.
             user_id (UUID): The ID of the user.
             photo_id (UUID): The ID of the photo.
+
+        Returns:
+            Rating | None: The rating object if found, otherwise None.
+        """
+        result = await db.execute(select(Rating).where(Rating.photo_id == photo_id))
+        return result.scalars().first()
+
+    @staticmethod
+    async def get_user_rating_for_photo_by_rating(
+        db: AsyncSession, rating_id: UUID) -> Rating | None:
+        """
+        Retrieves a user's rating for a specific photo.
+
+        Args:
+            db (AsyncSession): The database session object for asynchronous database operations.
+            rating_id (UUID): The ID of the raiting.
 
         Returns:
             Rating | None: The rating object if found, otherwise None.
@@ -127,7 +144,7 @@ class RatingRepository:
             HTTPException: If the rating is not found (404) or if an error occurs during the deletion (500).
         """
         try:
-            rating = await RatingRepository.get_user_rating_for_photo(
+            rating = await RatingRepository.get_user_rating_for_photo_by_rating(
                 db, rating_id
             )
             if rating:

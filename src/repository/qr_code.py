@@ -37,7 +37,7 @@ class QrCode:
         return transformed_image
 
     @staticmethod
-    async def get_qr_code(photo_id: str, db:AsyncSession) -> str:
+    async def get_qr_code(qr_id: UUID, db: AsyncSession) -> str:
         """
         Retrieves a QR code by photo ID.
 
@@ -48,9 +48,10 @@ class QrCode:
         Returns:
             QrCodeModel: The QR code model object if found, otherwise None.
         """
-        stmt = select(QrCodeModel).filter_by(photo_id=photo_id)
+        stmt = select(QrCodeModel).filter_by(id=qr_id)
         qr = await db.execute(stmt)
         qr = qr.scalars().first()
         return qr
+
 
 qr_repository = QrCode()
