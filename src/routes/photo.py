@@ -15,20 +15,18 @@ from src.repository.user import UserRepository
 from src.schemas.photo import PhotoUpdate, PhotoResponse
 from src.services.decorators import roles_required
 
-router = APIRouter(prefix='/photo', tags=['photos'])
+router = APIRouter(prefix="/photo", tags=["photos"])
 cloudinary.config(
     cloud_name=config.CLOUDINARY_NAME,
     api_key=config.CLOUDINARY_API_KEY,
     api_secret=config.CLOUDINARY_API_SECRET,
-    secure=True
+    secure=True,
 )
 
 
-@router.get('/', response_model=list[PhotoResponse])
+@router.get("/", response_model=list[PhotoResponse])
 async def get_all_photos(
-        offset: int = 0,
-        limit: int = 10,
-        db: AsyncSession = Depends(get_db)
+    offset: int = 0, limit: int = 10, db: AsyncSession = Depends(get_db)
 ) -> Sequence[Photo]:
     """
     Retrieve a list of photos with pagination.
@@ -51,10 +49,9 @@ async def get_all_photos(
     return await photo_repository.get_all_photos(offset, limit, db)
 
 
-@router.get('/{photo_id}', response_model=PhotoResponse)
+@router.get("/{photo_id}", response_model=PhotoResponse)
 async def get_photo_by_id(
-        photo_id: UUID,
-        db: AsyncSession = Depends(get_db)
+    photo_id: UUID, db: AsyncSession = Depends(get_db)
 ) -> Photo | None:
     """
     Retrieve a photo by its ID.
@@ -76,16 +73,18 @@ async def get_photo_by_id(
     return await photo_repository.get_photo_by_id_or_404(photo_id, db)
 
 
-@router.post('/upload', status_code=status.HTTP_201_CREATED, response_model=PhotoResponse)
+@router.post(
+    "/upload", status_code=status.HTTP_201_CREATED, response_model=PhotoResponse
+)
 @roles_required((Role.admin, Role.user))
 async def upload_user_photo(
-        description: str = Form(None),
-        tags: list[str] = Form(None),
-        file: UploadFile = File(),
-        current_user: User = Depends(UserRepository.get_current_user),
-        db: AsyncSession = Depends(get_db)
+    description: str = Form(None),
+    tags: list[str] = Form(None),
+    file: UploadFile = File(),
+    current_user: User = Depends(UserRepository.get_current_user),
+    db: AsyncSession = Depends(get_db),
 ) -> Photo:
-        """
+    """
     Upload a new photo.
 
     **Form Parameters:**
@@ -105,20 +104,17 @@ async def upload_user_photo(
 
 
     """
-        public_id = f'{datetime.now().timestamp()}_{current_user.email}'
-        resource = cloudinary_uploader.upload(file.file, public_id=public_id)
-
-        return await photo_repository.save_photo_to_db(
-            public_id, resource['secure_url'], description, tags, current_user, db
-        )
+    return await photo_repository.save_photo_to_db(
+        file, description, tags, current_user, db
+    )
 
 
-@router.put('/{photo_id}', response_model=PhotoResponse)
+@router.put("/{photo_id}", response_model=PhotoResponse)
 async def update_photo(
-        photo_id: UUID,
-        body: PhotoUpdate,
-        current_user: User = Depends(UserRepository.get_current_user),
-        db: AsyncSession = Depends(get_db)
+    photo_id: UUID,
+    body: PhotoUpdate,
+    current_user: User = Depends(UserRepository.get_current_user),
+    db: AsyncSession = Depends(get_db),
 ) -> Photo:
     """
     Update a photo's details.
@@ -148,18 +144,20 @@ async def update_photo(
     photo = await photo_repository.get_photo_by_id_or_404(photo_id, db)
 
     if not current_user.is_admin and current_user.id != photo.user_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='You cannot do it')
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="You cannot do it"
+        )
 
     uploaded_photo = await photo_repository.update_photo(photo, body, db)
 
     return uploaded_photo
 
 
-@router.delete('/{photo_id}')
+@router.delete("/{photo_id}")
 async def delete_photo(
-        photo_id: UUID,
-        current_user: User = Depends(UserRepository.get_current_user),
-        db: AsyncSession = Depends(get_db)
+    photo_id: UUID,
+    current_user: User = Depends(UserRepository.get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Delete a photo.
@@ -183,9 +181,11 @@ async def delete_photo(
     photo = await photo_repository.get_photo_by_id_or_404(photo_id, db)
 
     if not current_user.is_admin and current_user.id != photo.user_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='You cannot do it')
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="You cannot do it"
+        )
 
     cloudinary_uploader.destroy(public_id=photo.cloudinary_id)
 
     await photo_repository.delete_photo(photo, db)
-    return {'detail': 'Photo was deleted successfully.'}
+    return {"detail": "Photo was deleted successfully."}

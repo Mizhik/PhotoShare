@@ -1,13 +1,16 @@
+from datetime import datetime
 from typing import Sequence
 from uuid import UUID
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from src.repository.tag import TagRepository
 from src.entity.models import Photo, User
 from src.schemas.photo import PhotoUpdate
+
+from cloudinary import uploader as cloudinary_uploader
 
 
 class PhotoRepository:
@@ -65,8 +68,7 @@ class PhotoRepository:
 
     async def save_photo_to_db(
         self,
-        public_id: str,
-        url: str,
+        file: UploadFile,
         description: str,
         tags: list[str],
         user: User,
@@ -92,15 +94,13 @@ class PhotoRepository:
 
         - `HTTPException`: If more than 5 tags are provided.
         """
-        photo = Photo(
-            url=url, cloudinary_id=public_id, description=description, user_id=user.id
-        )
 
+        
         if tags:
             str_tag = tags[0]
             list_tags = [result for result in str_tag.split(",")]
             tag_objects = []
-            
+
             if len(list_tags) > 5:
                 raise HTTPException(status_code=400, detail="Error. You can add only 5 tags.")
 
@@ -110,9 +110,18 @@ class PhotoRepository:
                     tag = await TagRepository.create_tag(db, tag_name)
                 tag_objects.append(tag)
 
+            public_id = f"{datetime.now().timestamp()}_{user.email}"
+            resource = cloudinary_uploader.upload(file.file, public_id=public_id)
+            photo = Photo(
+                url=resource["secure_url"],
+                cloudinary_id=public_id,
+                description=description,
+                user_id=user.id,
+            )
+
             for tag in tag_objects:
                 photo.tags.append(tag)
-
+            
         db.add(photo)
         await db.commit()
         await db.refresh(photo)
