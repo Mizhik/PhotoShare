@@ -88,8 +88,8 @@ async def get_average_rating(
     return AverageRatingResponse(average_rating=avg_rating_rounded)
 
 
-@roles_required((Role.admin, Role.moderator))
 @router.delete("/{rating_id}", status_code=status.HTTP_204_NO_CONTENT)
+@roles_required((Role.admin, Role.moderator))
 async def delete_rating(
     rating_id: UUID,
     db: AsyncSession = Depends(get_db),
@@ -117,16 +117,11 @@ async def delete_rating(
     - `HTTPException` with status code `404 Not Found` if the rating with the given ID does not exist.
 
     """
-    if not current_user.is_admin and not current_user.is_moderator:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="You cannot do it"
-        )
-    else:
-        await RatingRepository.delete_rating(db, rating_id)
+    await RatingRepository.delete_rating(db, rating_id)
 
 
-@roles_required((Role.admin, Role.moderator))
 @router.get("/{photo_id}", response_model=List[RatingResponse])
+@roles_required((Role.admin, Role.moderator))
 async def get_ratings_for_photo(
     photo_id: UUID,
     db: AsyncSession = Depends(get_db),
@@ -155,10 +150,4 @@ async def get_ratings_for_photo(
 
     """
     ratings = await RatingRepository.get_ratings_for_photo(db, photo_id)
-
-    if not current_user.is_admin and current_user.is_moderator:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="You cannot do it"
-        )
-
     return ratings

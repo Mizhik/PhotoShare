@@ -114,7 +114,6 @@ async def upload_user_photo(
 
 
 @router.put('/{photo_id}', response_model=PhotoResponse)
-@roles_required((Role.admin, Role.user))
 async def update_photo(
         photo_id: UUID,
         body: PhotoUpdate,
@@ -157,7 +156,6 @@ async def update_photo(
 
 
 @router.delete('/{photo_id}')
-@roles_required((Role.admin, Role.user))
 async def delete_photo(
         photo_id: UUID,
         current_user: User = Depends(UserRepository.get_current_user),

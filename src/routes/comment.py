@@ -79,7 +79,6 @@ async def read_comment(
 	return CommentResponse.model_validate(comment)
 
 
-@roles_required((Role.admin, Role.moderator, Role.user))
 @router.put("/{comment_id}", response_model=CommentResponse)
 async def update_comment(
 		comment_id: UUID,
@@ -122,8 +121,8 @@ async def update_comment(
 	return CommentResponse.model_validate(updated_comment)
 
 
-@roles_required((Role.admin, Role.moderator))
 @router.delete("/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
+@roles_required((Role.admin, Role.moderator))
 async def delete_comment(
 		comment_id: UUID,
 		db: AsyncSession = Depends(get_db),
@@ -154,9 +153,6 @@ async def delete_comment(
 	comment = await CommentRepository.get_comment_by_id(db, comment_id)
 	if not comment:
 		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
-
-	if not current_user.is_admin and not current_user.is_moderator:
-		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
 	try:
 		await CommentRepository.delete_comment(db, comment_id)
 	except HTTPException as e:

@@ -11,7 +11,6 @@ from src.repository.user import UserRepository
 router = APIRouter(prefix='/search_photos', tags=['search_photos'])
 
 
-@roles_required((Role.admin, Role.moderator, Role.user))
 @router.get("/", response_model=List[PhotoResponse])
 async def search_photos(
         description: Optional[str] = None,
