@@ -14,7 +14,6 @@ from src.repository.photo import photo_repository
 router = APIRouter(prefix="/rating", tags=["rating"])
 
 
-# @roles_required((Role.admin, Role.moderator, Role.user))
 @router.post("/{photo_id}", response_model=RatingResponse)
 async def create_rating(
     photo_id: UUID,
@@ -22,6 +21,33 @@ async def create_rating(
     current_user: User = Depends(UserRepository.get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> RatingResponse:
+    """
+    Create a rating for a specific photo.
+
+    **Path Parameters:**
+
+    - `photo_id` (UUID): The ID of the photo to be rated.
+
+    **Request Body:**
+
+    - `rating_data` (RatingCreate): The rating information, including the rating value.
+
+    **Dependencies:**
+
+    - `current_user` (User): The user creating the rating, obtained from the current session.
+    - `db` (AsyncSession): The database session for async operations.
+
+    **Responses:**
+
+    - **200 OK**: Returns a `RatingResponse` containing the created rating details.
+
+    **Raises:**
+
+    - `HTTPException` with status code `400 Bad Request` if the rating value is invalid.
+    - `HTTPException` with status code `403 Forbidden` if the user is not authorized to rate.
+
+
+    """
     rating = await RatingRepository.create_rating(
         db=db,
         user_id=current_user.id,
@@ -36,6 +62,26 @@ async def get_average_rating(
     photo_id: UUID,
     db: AsyncSession = Depends(get_db),
 ) -> AverageRatingResponse:
+    """
+    Retrieve the average rating for a specific photo.
+
+    **Path Parameters:**
+
+    - `photo_id` (UUID): The ID of the photo for which the average rating is to be retrieved.
+
+    **Dependencies:**
+
+    - `db` (AsyncSession): The database session for async operations.
+
+    **Responses:**
+
+    - **200 OK**: Returns an `AverageRatingResponse` containing the average rating of the photo.
+
+    **Raises:**
+
+    - `HTTPException` with status code `404 Not Found` if the photo with the given ID does not exist.
+
+    """
     await photo_repository.get_photo_by_id_or_404(photo_id, db)
     avg_rating = await RatingRepository.get_average_rating(db, photo_id)
     avg_rating_rounded = round(avg_rating, 2)
@@ -49,6 +95,28 @@ async def delete_rating(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(UserRepository.get_current_user),
 ) -> None:
+    """
+    Delete a rating by its ID.
+
+    **Path Parameters:**
+
+    - `rating_id` (UUID): The ID of the rating to be deleted.
+
+    **Dependencies:**
+
+    - `current_user` (User): The user requesting the deletion, obtained from the current session.
+    - `db` (AsyncSession): The database session for async operations.
+
+    **Responses:**
+
+    - **204 No Content**: The rating has been successfully deleted.
+
+    **Raises:**
+
+    - `HTTPException` with status code `403 Forbidden` if the user is not authorized to delete the rating.
+    - `HTTPException` with status code `404 Not Found` if the rating with the given ID does not exist.
+
+    """
     if not current_user.is_admin and not current_user.is_moderator:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="You cannot do it"
@@ -64,6 +132,28 @@ async def get_ratings_for_photo(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(UserRepository.get_current_user),
 ) -> List[RatingResponse]:
+    """
+    Retrieve all ratings for a specific photo.
+
+    **Path Parameters:**
+
+    - `photo_id` (UUID): The ID of the photo for which ratings are to be retrieved.
+
+    **Dependencies:**
+
+    - `current_user` (User): The user requesting the ratings, obtained from the current session.
+    - `db` (AsyncSession): The database session for async operations.
+
+    **Responses:**
+
+    - **200 OK**: Returns a list of `RatingResponse` objects containing the details of all ratings for the photo.
+
+    **Raises:**
+
+    - `HTTPException` with status code `403 Forbidden` if the user is not authorized to view the ratings.
+
+
+    """
     ratings = await RatingRepository.get_ratings_for_photo(db, photo_id)
 
     if not current_user.is_admin and current_user.is_moderator:

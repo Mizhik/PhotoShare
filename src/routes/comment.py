@@ -19,10 +19,33 @@ async def create_comment(
 		db: AsyncSession = Depends(get_db),
 		current_user: User = Depends(UserRepository.get_current_user)
 ) -> CommentResponse:
-    comment = await CommentRepository.create_comment(
-        db=db, text=comment_create.text, user_id=current_user.id, photo_id=photo_id
-    )
-    return CommentResponse.model_validate(comment)
+	"""
+    Create a new comment on a specific photo.
+
+    **Request Body:**
+
+    - `comment_create` (CommentCreate): The comment content to create.
+    - `photo_id` (UUID): The ID of the photo to comment on.
+
+    **Dependencies:**
+
+    - `db` (AsyncSession): The database session for async operations.
+    - `current_user` (User): The currently authenticated user.
+
+    **Responses:**
+
+    - **201 Created**: The newly created comment.
+
+    **Raises:**
+
+    - `HTTPException` with status code `404 Not Found` if the photo does not exist.
+    - `HTTPException` with status code `403 Forbidden` if the user is not authorized.
+
+    """
+	comment = await CommentRepository.create_comment(
+		db=db, text=comment_create.text, user_id=current_user.id, photo_id=photo_id
+	)
+	return CommentResponse.model_validate(comment)
 
 
 @router.get("/{comment_id}", response_model=CommentResponse)
@@ -30,6 +53,26 @@ async def read_comment(
 		comment_id: UUID,
 		db: AsyncSession = Depends(get_db)
 ) -> CommentResponse:
+	"""
+    Retrieve a specific comment by its ID.
+
+    **Request Parameters:**
+
+    - `comment_id` (UUID): The ID of the comment to retrieve.
+
+    **Dependencies:**
+
+    - `db` (AsyncSession): The database session for async operations.
+
+    **Responses:**
+
+    - **200 OK**: The requested comment.
+
+    **Raises:**
+
+    - `HTTPException` with status code `404 Not Found` if the comment does not exist.
+
+    """
 	comment = await CommentRepository.get_comment_by_id(db, comment_id)
 	if not comment:
 		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
@@ -44,6 +87,29 @@ async def update_comment(
 		db: AsyncSession = Depends(get_db),
 		current_user: User = Depends(UserRepository.get_current_user)
 ) -> CommentResponse:
+	"""
+    Update an existing comment.
+
+    **Request Body:**
+
+    - `comment_update` (CommentUpdate): The updated content of the comment.
+    - `comment_id` (UUID): The ID of the comment to update.
+
+    **Dependencies:**
+
+    - `db` (AsyncSession): The database session for async operations.
+    - `current_user` (User): The currently authenticated user.
+
+    **Responses:**
+
+    - **200 OK**: The updated comment.
+
+    **Raises:**
+
+    - `HTTPException` with status code `404 Not Found` if the comment does not exist.
+    - `HTTPException` with status code `403 Forbidden` if the user is not authorized to update the comment.
+
+    """
 	comment = await CommentRepository.get_comment_by_id(db, comment_id)
 	if not comment:
 		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
@@ -63,6 +129,28 @@ async def delete_comment(
 		db: AsyncSession = Depends(get_db),
 		current_user: User = Depends(UserRepository.get_current_user)
 ) -> None:
+	"""
+    Delete a specific comment.
+
+    **Request Parameters:**
+
+    - `comment_id` (UUID): The ID of the comment to delete.
+
+    **Dependencies:**
+
+    - `db` (AsyncSession): The database session for async operations.
+    - `current_user` (User): The currently authenticated user.
+
+    **Responses:**
+
+    - **204 No Content**: Indicates that the comment was successfully deleted.
+
+    **Raises:**
+
+    - `HTTPException` with status code `404 Not Found` if the comment does not exist.
+    - `HTTPException` with status code `403 Forbidden` if the user is not authorized to delete the comment.
+
+    """
 	comment = await CommentRepository.get_comment_by_id(db, comment_id)
 	if not comment:
 		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
@@ -80,5 +168,21 @@ async def get_comments_by_photo(
 		photo_id: UUID,
 		db: AsyncSession = Depends(get_db)
 ) -> list[CommentResponse]:
+	"""
+    Retrieve all comments associated with a specific photo.
+
+    **Request Parameters:**
+
+    - `photo_id` (UUID): The ID of the photo to retrieve comments for.
+
+    **Dependencies:**
+
+    - `db` (AsyncSession): The database session for async operations.
+
+    **Responses:**
+
+    - **200 OK**: A list of comments for the specified photo.
+
+    """
 	comments = await CommentRepository.get_comment_by_photo_id(db, photo_id)
 	return [CommentResponse.model_validate(comment) for comment in comments]

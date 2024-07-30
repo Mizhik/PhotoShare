@@ -22,6 +22,24 @@ async def transform_image(
 		db: AsyncSession = Depends(get_db),
 		current_user: User = Depends(UserRepository.get_current_user)
 ):
+	"""
+    Transforms an image with specified transformations.
+
+    Args:
+        photo_id (UUID): The ID of the photo to transform.
+        request (TransformImageRequest): The request body containing transformation details and description.
+        db (AsyncSession, optional): The database session object for asynchronous database operations. Defaults to Depends(get_db).
+        current_user (User, optional): The current authenticated user. Defaults to Depends(UserRepository.get_current_user).
+
+    Returns:
+        dict: A dictionary containing the URL of the transformed image.
+
+    Raises:
+        HTTPException:
+            - 403: If the current user is not authorized to transform the photo.
+            - 404: If the photo is not found.
+            - 500: If there is an internal server error.
+    """
 	try:
 		photo = await photo_repository.get_photo_by_id_or_404(photo_id, db)
 

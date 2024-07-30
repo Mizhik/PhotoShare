@@ -31,16 +31,22 @@ async def get_all_photos(
         db: AsyncSession = Depends(get_db)
 ) -> Sequence[Photo]:
     """
-    Retrieve a paginated list of photos.
+    Retrieve a list of photos with pagination.
 
-    :param offset: The number of records to skip before starting to collect the result set. Defaults to 0.
-    :type offset: int
-    :param limit: The number of records to return. Defaults to 10.
-    :type limit: int
-    :param db: The database session.
-    :type db: AsyncSession
-    :return: A list of photos.
-    :rtype: Sequence[Photo]
+    **Query Parameters:**
+
+    - `offset` (int, optional): The number of photos to skip before starting to collect the result set. Defaults to `0`.
+    - `limit` (int, optional): The maximum number of photos to return. Defaults to `10`.
+
+    **Dependencies:**
+
+    - `db` (AsyncSession): The database session for async operations.
+
+    **Responses:**
+
+    - **200 OK**: Returns a list of photos. The response model is a list of `PhotoResponse`.
+
+
     """
     return await photo_repository.get_all_photos(offset, limit, db)
 
@@ -53,13 +59,19 @@ async def get_photo_by_id(
     """
     Retrieve a photo by its ID.
 
-    :param photo_id: The UUID of the photo to retrieve.
-    :type photo_id: UUID
-    :param db: The database session.
-    :type db: AsyncSession
-    :return: The photo if found.
-    :rtype: Photo
-    :raises HTTPException: If the photo is not found.
+    **Path Parameters:**
+
+    - `photo_id` (UUID): The ID of the photo to retrieve.
+
+    **Dependencies:**
+
+    - `db` (AsyncSession): The database session for async operations.
+
+    **Responses:**
+
+    - **200 OK**: Returns the details of the requested photo. The response model is `PhotoResponse`.
+    - **404 Not Found**: If the photo with the specified ID is not found.
+
     """
     return await photo_repository.get_photo_by_id_or_404(photo_id, db)
 
@@ -73,28 +85,32 @@ async def upload_user_photo(
         current_user: User = Depends(UserRepository.get_current_user),
         db: AsyncSession = Depends(get_db)
 ) -> Photo:
-    """
-    Upload a new photo for the current user.
+        """
+    Upload a new photo.
 
-    :param description: The description of the photo.
-    :type description: str
-    :param tags: A list of tags associated with the photo.
-    :type tags: list[str]
-    :param file: The photo file to upload.
-    :type file: UploadFile
-    :param current_user: The current authenticated user.
-    :type current_user: User
-    :param db: The database session.
-    :type db: AsyncSession
-    :return: The uploaded photo.
-    :rtype: Photo
-    """
-    public_id = f'{datetime.now().timestamp()}_{current_user.email}'
-    resource = cloudinary_uploader.upload(file.file, public_id=public_id)
+    **Form Parameters:**
 
-    return await photo_repository.save_photo_to_db(
-        public_id, resource['secure_url'], description, tags, current_user, db
-    )
+    - `description` (str, optional): A description for the photo.
+    - `tags` (list[str], optional): A list of tags associated with the photo.
+    - `file` (UploadFile, required): The file of the photo to upload.
+
+    **Dependencies:**
+
+    - `current_user` (User): The currently logged-in user.
+    - `db` (AsyncSession): The database session for async operations.
+
+    **Responses:**
+
+    - **201 Created**: Returns the details of the uploaded photo. The response model is `PhotoResponse`.
+
+
+    """
+        public_id = f'{datetime.now().timestamp()}_{current_user.email}'
+        resource = cloudinary_uploader.upload(file.file, public_id=public_id)
+
+        return await photo_repository.save_photo_to_db(
+            public_id, resource['secure_url'], description, tags, current_user, db
+        )
 
 
 @router.put('/{photo_id}', response_model=PhotoResponse)
@@ -106,19 +122,29 @@ async def update_photo(
         db: AsyncSession = Depends(get_db)
 ) -> Photo:
     """
-    Update an existing photo's details.
+    Update a photo's details.
 
-    :param photo_id: The UUID of the photo to update.
-    :type photo_id: UUID
-    :param body: The update details for the photo.
-    :type body: PhotoUpdate
-    :param current_user: The current authenticated user.
-    :type current_user: User
-    :param db: The database session.
-    :type db: AsyncSession
-    :return: The updated photo.
-    :rtype: Photo
-    :raises HTTPException: If the user is not authorized to update the photo.
+    **Path Parameters:**
+
+    - `photo_id` (UUID): The ID of the photo to update.
+
+    **Request Body:**
+
+    - `body` (PhotoUpdate): A schema containing the updated photo details. Includes:
+        - `description` (str, optional): Updated description of the photo.
+        - `tags` (list[str], optional): Updated list of tags for the photo.
+
+    **Dependencies:**
+
+    - `current_user` (User): The currently logged-in user.
+    - `db` (AsyncSession): The database session for async operations.
+
+    **Responses:**
+
+    - **200 OK**: Returns the updated photo details. The response model is `PhotoResponse`.
+    - **403 Forbidden**: If the user does not have permission to update the photo.
+    - **404 Not Found**: If the photo with the specified ID is not found.
+
     """
     photo = await photo_repository.get_photo_by_id_or_404(photo_id, db)
 
@@ -138,17 +164,23 @@ async def delete_photo(
         db: AsyncSession = Depends(get_db)
 ):
     """
-    Delete a photo by its ID.
+    Delete a photo.
 
-    :param photo_id: The UUID of the photo to delete.
-    :type photo_id: UUID
-    :param current_user: The current authenticated user.
-    :type current_user: User
-    :param db: The database session.
-    :type db: AsyncSession
-    :return: A message indicating the photo was deleted successfully.
-    :rtype: dict
-    :raises HTTPException: If the user is not authorized to delete the photo.
+    **Path Parameters:**
+
+    - `photo_id` (UUID): The ID of the photo to delete.
+
+    **Dependencies:**
+
+    - `current_user` (User): The currently logged-in user.
+    - `db` (AsyncSession): The database session for async operations.
+
+    **Responses:**
+
+    - **204 No Content**: The photo was successfully deleted.
+    - **403 Forbidden**: If the user does not have permission to delete the photo.
+    - **404 Not Found**: If the photo with the specified ID is not found.
+
     """
     photo = await photo_repository.get_photo_by_id_or_404(photo_id, db)
 

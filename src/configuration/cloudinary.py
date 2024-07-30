@@ -1,7 +1,6 @@
 import cloudinary
 import cloudinary.uploader
 from src.configuration.settings import config
-from src.entity.models import TransformedImage
 import io
 
 

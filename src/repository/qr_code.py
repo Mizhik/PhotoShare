@@ -8,6 +8,18 @@ from src.configuration.cloudinary import upload_qr_to_cloudinary
 class QrCode:
     @staticmethod
     async def generate_qr_code(url_photo: str, db: AsyncSession, photo_id: UUID) -> str:
+        """
+        Generates a QR code for a given photo URL and stores it in the database.
+
+        Args:
+            url_photo (str): The URL of the photo for which the QR code is to be generated.
+            db (AsyncSession): The database session object for asynchronous database operations.
+            photo_id (UUID): The ID of the photo for which the QR code is generated.
+
+        Returns:
+            QrCodeModel: The QR code model object containing the generated QR code URL.
+
+        """
         qr = qrcode.QRCode(
             version=1,
             error_correction=qrcode.constants.ERROR_CORRECT_L,
@@ -26,6 +38,16 @@ class QrCode:
 
     @staticmethod
     async def get_qr_code(photo_id: str, db:AsyncSession) -> str:
+        """
+        Retrieves a QR code by photo ID.
+
+        Args:
+            photo_id (UUID): The ID of the photo associated with the QR code.
+            db (AsyncSession): The database session object for asynchronous database operations.
+
+        Returns:
+            QrCodeModel: The QR code model object if found, otherwise None.
+        """
         stmt = select(QrCodeModel).filter_by(photo_id=photo_id)
         qr = await db.execute(stmt)
         qr = qr.scalars().first()

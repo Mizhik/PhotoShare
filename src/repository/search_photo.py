@@ -19,6 +19,23 @@ class SearchPhotoRepository:
 			sort_by: SortBy = SortBy.date,
 			order: Order = Order.asc
 	) -> List[Photo]:
+		"""
+        Searches for photos based on various optional filters and sorting options.
+
+        Args:
+            db (AsyncSession): The database session object for asynchronous database operations.
+            description (Optional[str]): The description to filter photos by (partial match).
+            tag (Optional[str]): The tag to filter photos by.
+            username (Optional[str]): The username to filter photos by.
+            sort_by (SortBy): The field to sort the results by (default is SortBy.date).
+            order (Order): The order to sort the results in (default is Order.asc).
+
+        Returns:
+            List[Photo]: A list of photos matching the search criteria.
+
+        Raises:
+            HTTPException: If an error occurs during the search (500).
+        """
 		try:
 			query = select(Photo).options(
 				selectinload(Photo.tags),

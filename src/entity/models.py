@@ -2,7 +2,7 @@ import enum
 from datetime import date
 from uuid import UUID, uuid4
 
-from sqlalchemy import Integer, PrimaryKeyConstraint, String, DateTime, func, Enum, ForeignKey, Column, Table
+from sqlalchemy import Integer, String, DateTime, func, Enum, ForeignKey, Column, Table
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -46,9 +46,6 @@ class User(Base):
 		return self.role == Role.moderator
 
 class Photo(Base):
-	"""
-	Model for photo information storing.
-	"""
 	__tablename__ = 'photos'
 	id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
 	cloudinary_id: Mapped[str] = mapped_column(String(255), nullable=False)

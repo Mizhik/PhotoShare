@@ -20,7 +20,23 @@ class CloudinaryRepository:
 			db: AsyncSession,
 			user: User
 			) -> str:
+		"""
+		Transforms an image based on given transformations and uploads the transformed image to Cloudinary.
 
+		Args:
+			photo_id (UUID): The ID of the photo to be transformed.
+			transformations (List[Transformation]): A list of transformation objects to be applied to the photo.
+			description (str): A description for the transformed photo.
+			db (AsyncSession): The database session object for asynchronous database operations.
+			user (User): The user object to associate the transformed photo with the user.
+
+		Returns:
+			str: The URL of the transformed image.
+
+		Raises:
+			HTTPException: If the photo is not found (404) or if an error occurs during the transformation (500).
+
+		"""		
 		try:
 			result = await db.execute(select(Photo).filter(Photo.id == photo_id))
 			photo = result.scalars().first()

@@ -22,6 +22,33 @@ async def search_photos(
         db: AsyncSession = Depends(get_db),
         current_user: User = Depends(UserRepository.get_current_user),
 ):
+    """
+    Search for photos based on various criteria.
+
+    **Query Parameters:**
+
+    - `description` (Optional[str]): A keyword to search in the photo description.
+    - `tag` (Optional[str]): A tag to filter photos by.
+    - `username` (Optional[str]): A username to filter photos by the owner. This parameter is optional
+      and is only required if the current user has an admin or moderator role.
+    - `sort_by` (SortBy): The attribute to sort the results by. Defaults to `SortBy.date`.
+    - `order` (Order): The order of sorting. Defaults to `Order.asc` (ascending). Use `Order.desc` for descending.
+
+    **Dependencies:**
+
+    - `db` (AsyncSession): The database session for async operations.
+    - `current_user` (User): The user making the request, obtained from the current session.
+
+    **Responses:**
+
+    - **200 OK**: Returns a list of `PhotoResponse` objects representing the photos matching the search criteria.
+
+    **Raises:**
+
+    - `HTTPException` with status code `403 Forbidden` if the user is not authorized to perform the search.
+    
+
+    """
     photos = await SearchPhotoRepository.search_photos(
         db=db,
         description=description,
