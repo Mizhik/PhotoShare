@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Sequence
+from typing import Optional, Sequence
 from uuid import UUID
 
 from fastapi import HTTPException, UploadFile, status
@@ -79,30 +79,31 @@ class PhotoRepository:
 
         **Parameters:**
 
-        - `public_id` (str): The public ID of the photo in Cloudinary.
-        - `url` (str): The URL of the photo.
-        - `description` (str): A description of the photo.
-        - `tags` (list[str]): A list of tags for the photo.
-        - `user` (User): The user who uploaded the photo.
-        - `db` (AsyncSession): The database session for async operations.
+        - file (UploadFile): The file of the photo to upload.
+        - description (str): A description of the photo.
+        - tags (list[str]): A list of tags for the photo.
+        - user (User): The user who uploaded the photo.
+        - db (AsyncSession): The database session for async operations.
 
         **Returns:**
 
-        - `Photo`: The saved `Photo` object.
+        - Photo: The saved Photo object.
 
         **Raises:**
 
-        - `HTTPException`: If more than 5 tags are provided.
+        - HTTPException: If more than 5 tags are provided.
         """
-
-        
+        print(tags)
+        print(type(tags))
         if tags:
             str_tag = tags[0]
-            list_tags = [result for result in str_tag.split(",")]
+            list_tags = [result for result in str_tag.split(",") if result != ""]
             tag_objects = []
 
             if len(list_tags) > 5:
-                raise HTTPException(status_code=400, detail="Error. You can add only 5 tags.")
+                raise HTTPException(
+                    status_code=400, detail="Error. You can add only 5 tags."
+                )
 
             for tag_name in list_tags:
                 tag = await TagRepository.get_tag(db, tag_name)
@@ -121,7 +122,16 @@ class PhotoRepository:
 
             for tag in tag_objects:
                 photo.tags.append(tag)
-            
+        else:
+            public_id = f"{datetime.now().timestamp()}_{user.email}"
+            resource = cloudinary_uploader.upload(file.file, public_id=public_id)
+            photo = Photo(
+                url=resource["secure_url"],
+                cloudinary_id=public_id,
+                description=description,
+                user_id=user.id,
+            )
+
         db.add(photo)
         await db.commit()
         await db.refresh(photo)
