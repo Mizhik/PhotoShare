@@ -15,8 +15,10 @@ class UserSchema(BaseModel):
 class UserUpdate(BaseModel):
     username: Optional[str] = Field(None, min_length=3, max_length=50)
     password: Optional[str] = Field(None, min_length=8)
-    role: Role
 
+class UserChangeRole(BaseModel):
+    id: UUID
+    role: Role
 
 class UserLogin(BaseModel):
     email: EmailStr

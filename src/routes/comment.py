@@ -12,24 +12,17 @@ from src.repository.user import UserRepository
 router = APIRouter(prefix="/comments", tags=["comments"])
 
 
-@roles_required(Role.user)
 @router.post("/", response_model=CommentResponse, status_code=status.HTTP_201_CREATED)
 async def create_comment(
 		comment_create: CommentCreate,
-		user_id: UUID,
 		photo_id: UUID,
 		db: AsyncSession = Depends(get_db),
 		current_user: User = Depends(UserRepository.get_current_user)
 ) -> CommentResponse:
-	comment = await CommentRepository.create_comment(
-		db=db,
-		text=comment_create.text,
-		user_id=user_id,
-		photo_id=photo_id
-	)
-	if current_user.id != comment.user_id:
-		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not autorized")
-	return CommentResponse.model_validate(comment)
+    comment = await CommentRepository.create_comment(
+        db=db, text=comment_create.text, user_id=current_user.id, photo_id=photo_id
+    )
+    return CommentResponse.model_validate(comment)
 
 
 @router.get("/{comment_id}", response_model=CommentResponse)
@@ -63,7 +56,7 @@ async def update_comment(
 	return CommentResponse.model_validate(updated_comment)
 
 
-@roles_required((Role.admin, Role.moderator, Role.user))
+@roles_required((Role.admin, Role.moderator))
 @router.delete("/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_comment(
 		comment_id: UUID,
@@ -74,7 +67,7 @@ async def delete_comment(
 	if not comment:
 		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
 
-	if not current_user.is_admin and not current_user.is_moderator and current_user.id != comment.user_id:
+	if not current_user.is_admin and not current_user.is_moderator:
 		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
 	try:
 		await CommentRepository.delete_comment(db, comment_id)

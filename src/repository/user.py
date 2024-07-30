@@ -6,7 +6,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.db import get_db
-from src.entity.models import User
+from src.entity.models import Role, User
 from src.schemas.user import UserDetail, UserSchema
 from src.services.auth import auth_service
 
@@ -51,6 +51,19 @@ class UserRepository:
         return {
             "access_token": access_token,
         }
+
+    async def change_role(self, user_id: UUID, db: AsyncSession, role:Role):
+        stmt = select(User).filter_by(id=user_id)
+        user = await db.execute(stmt)
+        user = user.scalar_one_or_none()
+        if user:
+            user.role = role
+        else:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+        return user
 
     @staticmethod
     async def get_current_user(

@@ -13,7 +13,7 @@ router = APIRouter(prefix="/generate_qr", tags=["generate_qr"])
 
 @router.post("/generate_qr/{photo_id}", response_model=QrCreateResponse)
 async def generate_qr(photo_id: UUID, db: AsyncSession = Depends(get_db)) -> str:
-    stmt = select(Photo).filter_by(id = photo_id)
+    stmt = select(Photo).filter_by(id=photo_id)
     photo = await db.execute(stmt)
     photo = photo.scalar_one_or_none()
     if not photo:

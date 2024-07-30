@@ -1,8 +1,11 @@
-from fastapi import APIRouter, Depends
+from uuid import UUID
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.entity.models import Role
+from src.services.decorators import roles_required
 from src.database.db import get_db
-from src.schemas.user import UserSchema, UserDetail, UserLogin
+from src.schemas.user import UserChangeRole, UserSchema, UserDetail, UserLogin, UserUpdate
 from src.services.auth import auth_service
 from src.repository.user import UserRepository, user_repository
 from src.schemas.auth import TokenSchema
@@ -28,3 +31,17 @@ async def login(body: UserLogin, db: AsyncSession = Depends(get_db)):
 @router.get("/me", response_model=UserDetail)
 async def user_me(current_user: UserDetail = Depends(UserRepository.get_current_user)):
     return current_user
+
+
+@roles_required((Role.admin))
+@router.put("/change-role/{user_id}", response_model=UserChangeRole)
+async def change_role(
+    user_id: UUID,
+    role:Role,
+    current_user: UserDetail = Depends(UserRepository.get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='You cannot do it')
+    else:
+        return await user_repository.change_role(user_id, db, role)
