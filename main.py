@@ -25,6 +25,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.get("/")
+def root():
+    return {"greeting":"WELCOME!!!"}
+
+
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
