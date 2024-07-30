@@ -11,6 +11,7 @@ class AverageRatingResponse(BaseModel):
 
 
 class RatingResponse(BaseModel):
+	id:UUID
 	user_id: UUID
 	photo_id: UUID
 	rating: int
