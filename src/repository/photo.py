@@ -93,8 +93,6 @@ class PhotoRepository:
 
         - HTTPException: If more than 5 tags are provided.
         """
-        print(tags)
-        print(type(tags))
         if tags:
             str_tag = tags[0]
             list_tags = [result for result in str_tag.split(",") if result != ""]

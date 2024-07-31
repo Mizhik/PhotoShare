@@ -57,7 +57,7 @@ class Photo(Base):
 	tags: Mapped[list['Tag']] = relationship('Tag', secondary=photo_tag_association, back_populates='photos', lazy="selectin")
 	transformed_images: Mapped[list['TransformedImage']] = relationship('TransformedImage', back_populates='photo', lazy="selectin")
 	qr_code: Mapped[list['QrCode']] = relationship('QrCode', back_populates='qr_code', lazy="selectin")
-	comments: Mapped[list['Comment']] = relationship('Comment', back_populates='photo', lazy="selectin")
+	comments: Mapped[list['Comment']] = relationship('Comment', back_populates='photo',cascade="all, delete-orphan", lazy="selectin")
 	user: Mapped['User'] = relationship('User', back_populates='photos', lazy="selectin")
 	ratings: Mapped[list['Rating']] = relationship('Rating', back_populates='photo', lazy="selectin")
 
